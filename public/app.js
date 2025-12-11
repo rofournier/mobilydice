@@ -106,24 +106,23 @@ function createPlayerCard(player, isMainPlayer = false) {
   card.className = isMainPlayer ? 'player-card main-player-mat' : 'player-card other-player-card';
   card.setAttribute('data-player-id', player.id);
 
-  const nameDiv = document.createElement('div');
-  nameDiv.className = 'player-name';
-  // Afficher le nom avec le type de dé pour tout le monde
-  const diceType = player.diceType || 20;
-  nameDiv.innerHTML = `<span class="player-name-text">${player.name}</span> <span class="player-dice-type">d${diceType}</span>`;
-  // Animation d'entrée
-  setTimeout(() => {
-    nameDiv.style.animation = 'nameEnter 0.5s ease-out';
-  }, 10);
-
-  // Sélecteur de type de dé (seulement pour le joueur actuel)
-  if (player.id === playerId) {
+  // Header avec nom et sélecteur (seulement pour le joueur principal)
+  if (isMainPlayer && player.id === playerId) {
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'player-card-header';
+    
+    // Nom en haut à gauche
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'player-name';
+    nameDiv.innerHTML = `<span class="player-name-text">${player.name}</span>`;
+    setTimeout(() => {
+      nameDiv.style.animation = 'nameEnter 0.5s ease-out';
+    }, 10);
+    headerDiv.appendChild(nameDiv);
+    
+    // Sélecteur en haut à droite
     const diceSelectorContainer = document.createElement('div');
     diceSelectorContainer.className = 'dice-selector-container';
-    
-    const diceSelectorLabel = document.createElement('label');
-    diceSelectorLabel.className = 'dice-selector-label';
-    diceSelectorLabel.textContent = '🎲 Type de dé:';
     
     const diceSelector = document.createElement('select');
     diceSelector.className = 'dice-selector';
@@ -145,15 +144,31 @@ function createPlayerCard(player, isMainPlayer = false) {
       socket.emit('dice:changeType', selectedType);
     });
     
-    diceSelectorContainer.appendChild(diceSelectorLabel);
     diceSelectorContainer.appendChild(diceSelector);
-    card.appendChild(diceSelectorContainer);
+    headerDiv.appendChild(diceSelectorContainer);
+    
+    card.appendChild(headerDiv);
   } else {
-    // Afficher le type de dé pour les autres joueurs
+    // Pour les autres joueurs : header avec nom à gauche et type de dé à droite
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'player-card-header';
+    
+    // Nom en haut à gauche
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'player-name';
+    nameDiv.innerHTML = `<span class="player-name-text">${player.name}</span>`;
+    setTimeout(() => {
+      nameDiv.style.animation = 'nameEnter 0.5s ease-out';
+    }, 10);
+    headerDiv.appendChild(nameDiv);
+    
+    // Type de dé en haut à droite
     const diceTypeDisplay = document.createElement('div');
     diceTypeDisplay.className = 'dice-type-display';
     diceTypeDisplay.textContent = `🎲 d${player.diceType || 20}`;
-    card.appendChild(diceTypeDisplay);
+    headerDiv.appendChild(diceTypeDisplay);
+    
+    card.appendChild(headerDiv);
   }
 
   const diceContainer = document.createElement('div');
@@ -192,9 +207,9 @@ function createPlayerCard(player, isMainPlayer = false) {
     rollButton.style.display = 'none';
   }
 
-  card.appendChild(nameDiv);
+  // Ajouter les éléments communs
   card.appendChild(diceContainer);
-  card.appendChild(resultDisplay);
+  // card.appendChild(resultDisplay);
   card.appendChild(rollButton);
 
   return card;
@@ -204,7 +219,7 @@ function createPlayerCard(player, isMainPlayer = false) {
 function rollDice(playerCard, result, diceType, isMyRoll) {
   const dice = playerCard.querySelector('.dice');
   const diceNumber = dice.querySelector('.dice-number');
-  const resultDisplay = playerCard.querySelector('.result-display');
+  // const resultDisplay = playerCard.querySelector('.result-display');
   const rollButton = playerCard.querySelector('.roll-button');
   
   if (isMyRoll) {
@@ -213,8 +228,8 @@ function rollDice(playerCard, result, diceType, isMyRoll) {
   }
 
   // Réinitialiser l'affichage
-  resultDisplay.textContent = '';
-  resultDisplay.classList.remove('show');
+  // resultDisplay.textContent = '';
+  // resultDisplay.classList.remove('show');
   diceNumber.textContent = '?';
 
   // Activer l'animation de rotation
@@ -272,8 +287,8 @@ function rollDice(playerCard, result, diceType, isMyRoll) {
 
       // Afficher le résultat avec animation
       setTimeout(() => {
-        resultDisplay.textContent = `${result} / d${diceType}`;
-        resultDisplay.classList.add('show');
+        // resultDisplay.textContent = result;
+        // resultDisplay.classList.add('show');
 
         // Réactiver le bouton après un court délai
         setTimeout(() => {

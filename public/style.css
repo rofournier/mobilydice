@@ -238,7 +238,8 @@ body::before {
   width: 100%;
   height: 250px;
   min-height: 250px;
-  padding: 12px;
+  padding: 8px 12px 12px 12px; /* Réduire le padding-top pour que le header soit bien en haut */
+  justify-content: flex-start; /* Aligner le contenu en haut */
 }
 
 /* Ajustements pour les cartes des autres joueurs */
@@ -276,9 +277,8 @@ body::before {
   font-size: clamp(0.6rem, min(1.5vw, 1.5vh), 0.9rem);
 }
 
-.other-player-card .dice-selector-container,
-.other-player-card .dice-type-display {
-  margin-bottom: clamp(3px, 0.6vh, 8px);
+.other-player-card .player-card-header {
+  margin-bottom: clamp(5px, 1vh, 10px);
 }
 
 .other-player-card .dice-container {
@@ -304,12 +304,33 @@ body::before {
   z-index: 1;
 }
 
+/* Header du joueur principal */
+.player-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: clamp(10px, 2vh, 20px);
+  flex-shrink: 0;
+  gap: 15px;
+}
+
+.player-card-header .player-name {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.player-card-header .dice-selector-container {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
 .player-name {
   font-family: 'Cinzel', serif;
   font-size: clamp(0.9rem, 2.5vh, 2rem);
   font-weight: 700;
   color: #00d084;
-  margin-bottom: clamp(5px, 1vh, 20px);
+  margin-bottom: 0;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: clamp(1px, 0.3vw, 3px);
@@ -330,6 +351,12 @@ body::before {
   transform: perspective(500px) rotateX(5deg);
   transition: all 0.3s ease;
   flex-shrink: 0;
+}
+
+/* Pour les autres joueurs, le nom dans le header */
+.other-player-card .player-card-header .player-name {
+  margin-bottom: 0;
+  flex: 0 0 auto;
 }
 
 .player-name-text {
@@ -507,7 +534,6 @@ body::before {
 
 /* Sélecteur de dé */
 .dice-selector-container {
-  margin-bottom: clamp(5px, 1vh, 15px);
   display: flex;
   align-items: center;
   gap: clamp(5px, 1vw, 10px);
@@ -515,12 +541,13 @@ body::before {
   flex-shrink: 0;
 }
 
+/* Sélecteur dans le header du joueur principal */
+.player-card-header .dice-selector-container {
+  margin-bottom: 0;
+}
+
 .dice-selector-label {
-  font-family: 'Cinzel', serif;
-  color: #00d084;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-shadow: 0 0 5px rgba(0, 208, 132, 0.5);
+  display: none;
 }
 
 .dice-selector {
@@ -552,10 +579,22 @@ body::before {
   color: #00d084;
   font-weight: 600;
   font-size: clamp(0.7rem, min(1.5vw, 1.5vh), 1rem);
-  margin-bottom: clamp(5px, 1vh, 15px);
   text-shadow: 0 0 5px rgba(0, 208, 132, 0.5);
   z-index: 1;
   flex-shrink: 0;
+  padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 15px);
+  background: linear-gradient(135deg, rgba(45, 27, 61, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 208, 132, 0.4);
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    inset 0 0 10px rgba(0, 208, 132, 0.1);
+}
+
+/* Type de dé dans le header */
+.player-card-header .dice-type-display {
+  margin-bottom: 0;
+  flex: 0 0 auto;
 }
 
 /* Bouton de lancer */
