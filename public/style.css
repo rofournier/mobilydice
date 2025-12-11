@@ -11,8 +11,14 @@ body {
     radial-gradient(circle at 80% 80%, rgba(0, 168, 107, 0.4) 0%, transparent 50%),
     linear-gradient(135deg, #0d1b1a 0%, #1a2e24 50%, #0f2419 100%);
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
+}
+
+@media (min-width: 769px) {
+  body {
+    overflow: hidden;
+  }
 }
 
 body::before {
@@ -135,30 +141,47 @@ body::before {
   width: 100vw;
   height: 100vh;
   display: grid;
-  gap: 10px;
-  padding: 10px;
+  gap: clamp(5px, 1vh, 10px);
+  padding: clamp(5px, 1vh, 10px);
+  grid-template-columns: repeat(var(--grid-cols, 1), 1fr);
+  grid-template-rows: repeat(var(--grid-rows, 1), 1fr);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .game-container.hidden {
   display: none;
 }
 
-/* Layouts selon le nombre de joueurs */
-.game-container.players-1 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
+/* Avec scroll pour plus de 4 joueurs */
+.game-container.has-scroll {
+  grid-template-rows: repeat(2, minmax(300px, auto));
+  grid-auto-rows: minmax(300px, auto);
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: 100vh;
+  max-height: 100vh;
 }
 
-.game-container.players-2 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
+.game-container.has-scroll::-webkit-scrollbar {
+  width: 12px;
 }
 
-.game-container.players-3,
-.game-container.players-4 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+.game-container.has-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
 }
+
+.game-container.has-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 208, 132, 0.5);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.game-container.has-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 208, 132, 0.7);
+}
+
 
 /* Carte joueur */
 .player-card {
@@ -166,7 +189,7 @@ body::before {
     linear-gradient(135deg, rgba(45, 27, 61, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%),
     url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="%23ffffff" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
   border-radius: 20px;
-  padding: 20px;
+  padding: clamp(8px, 1.5vh, 20px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -178,6 +201,9 @@ body::before {
   position: relative;
   overflow: hidden;
   border: 2px solid rgba(0, 208, 132, 0.3);
+  min-height: 300px;
+  min-width: 0;
+  height: auto;
 }
 
 .player-card::before {
@@ -201,20 +227,20 @@ body::before {
 
 .player-name {
   font-family: 'Cinzel', serif;
-  font-size: 2rem;
+  font-size: clamp(0.9rem, 2.5vh, 2rem);
   font-weight: 700;
   color: #00d084;
-  margin-bottom: 20px;
+  margin-bottom: clamp(5px, 1vh, 20px);
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: clamp(1px, 0.3vw, 3px);
   text-shadow: 
     0 0 10px rgba(0, 208, 132, 0.8),
     0 0 20px rgba(0, 208, 132, 0.5),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: namePulse 2s ease-in-out infinite;
   position: relative;
-  padding: 12px 24px;
+  padding: clamp(6px, 1vh, 12px) clamp(12px, 2vw, 24px);
   background: linear-gradient(135deg, rgba(45, 27, 61, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%);
   border-radius: 15px;
   box-shadow: 
@@ -224,6 +250,7 @@ body::before {
   border: 2px solid rgba(0, 208, 132, 0.4);
   transform: perspective(500px) rotateX(5deg);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .player-name-text {
@@ -232,8 +259,8 @@ body::before {
 
 .player-dice-type {
   display: inline-block;
-  margin-left: 10px;
-  font-size: 1.2rem;
+  margin-left: clamp(5px, 1vw, 10px);
+  font-size: clamp(0.7rem, 1.5vh, 1.2rem);
   color: #00ff9f;
   text-shadow: 
     0 0 8px rgba(0, 255, 159, 0.6),
@@ -283,7 +310,8 @@ body::before {
 .dice-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -293,10 +321,11 @@ body::before {
 
 .dice {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: clamp(80px, min(15vw, 15vh), 200px);
+  height: clamp(80px, min(15vw, 15vh), 200px);
   transform-style: preserve-3d;
   transition: transform 0.1s;
+  flex-shrink: 0;
 }
 
 .dice.rolling {
@@ -317,14 +346,14 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4rem;
+  font-size: clamp(1.5rem, min(8vw, 8vh), 4rem);
   font-weight: 900;
   color: #00d084;
   font-family: 'Cinzel', serif;
   background: 
     linear-gradient(135deg, rgba(45, 27, 61, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%),
     radial-gradient(circle at 30% 30%, rgba(0, 208, 132, 0.2) 0%, transparent 50%);
-  border: 4px solid rgba(0, 208, 132, 0.6);
+  border: clamp(2px, 0.5vw, 4px) solid rgba(0, 208, 132, 0.6);
   border-radius: 20px;
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.6),
@@ -399,11 +428,12 @@ body::before {
 
 /* Sélecteur de dé */
 .dice-selector-container {
-  margin-bottom: 15px;
+  margin-bottom: clamp(5px, 1vh, 15px);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(5px, 1vw, 10px);
   z-index: 1;
+  flex-shrink: 0;
 }
 
 .dice-selector-label {
@@ -442,22 +472,23 @@ body::before {
   font-family: 'Cinzel', serif;
   color: #00d084;
   font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 15px;
+  font-size: clamp(0.7rem, min(1.5vw, 1.5vh), 1rem);
+  margin-bottom: clamp(5px, 1vh, 15px);
   text-shadow: 0 0 5px rgba(0, 208, 132, 0.5);
   z-index: 1;
+  flex-shrink: 0;
 }
 
 /* Bouton de lancer */
 .roll-button {
-  margin-top: 30px;
-  padding: 15px 40px;
-  font-size: 1.2rem;
+  margin-top: clamp(10px, 1.5vh, 30px);
+  padding: clamp(8px, 1.5vh, 15px) clamp(20px, 4vw, 40px);
+  font-size: clamp(0.7rem, min(2vw, 2vh), 1.2rem);
   font-weight: bold;
   font-family: 'Cinzel', serif;
   background: linear-gradient(135deg, #00a86b 0%, #00d084 100%);
-  color: #1a1a2e;
-  border: 2px solid #00d084;
+  color: #0d1b1a;
+  border: clamp(1px, 0.3vw, 2px) solid #00d084;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
@@ -465,10 +496,12 @@ body::before {
     0 5px 20px rgba(0, 208, 132, 0.4),
     inset 0 0 20px rgba(0, 255, 159, 0.2);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.3vw, 2px);
   position: relative;
   overflow: hidden;
   z-index: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .roll-button::before {
@@ -513,8 +546,8 @@ body::before {
 
 /* Résultat affiché */
 .result-display {
-  margin-top: 20px;
-  font-size: 2.5rem;
+  margin-top: clamp(5px, 1vh, 20px);
+  font-size: clamp(1rem, min(4vw, 4vh), 2.5rem);
   font-weight: bold;
   font-family: 'Cinzel', serif;
   color: #00d084;
@@ -522,10 +555,11 @@ body::before {
     0 0 10px rgba(0, 208, 132, 0.8),
     0 0 20px rgba(0, 208, 132, 0.5),
     2px 2px 4px rgba(0, 0, 0, 0.8);
-  min-height: 60px;
+  min-height: clamp(30px, 4vh, 60px);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 /* Animation de résultat */
@@ -899,14 +933,19 @@ body::before {
 
 /* Responsive */
 @media (max-width: 768px) {
-  /* Layout des joueurs */
-  .game-container.players-2,
-  .game-container.players-3,
-  .game-container.players-4 {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(auto-fit, 1fr);
+  /* Layout des joueurs - simple colonne sur mobile */
+  .game-container {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(auto-fit, minmax(200px, 1fr)) !important;
     gap: 8px;
     padding: 8px;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .player-card {
+    min-height: 200px;
   }
 
   /* Cartes joueur */

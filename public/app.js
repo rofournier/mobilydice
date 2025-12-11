@@ -53,7 +53,35 @@ socket.on('dice:rolled', (data) => {
 // Rendre les joueurs
 function renderPlayers() {
   gameContainer.innerHTML = '';
-  gameContainer.className = `game-container players-${players.length}`;
+  
+  // Calculer le layout de la grille pour desktop
+  const playerCount = players.length;
+  let cols, rows;
+  
+  if (playerCount === 1) {
+    cols = 1;
+    rows = 1;
+  } else if (playerCount === 2) {
+    cols = 2;
+    rows = 1;
+  } else if (playerCount <= 4) {
+    cols = 2;
+    rows = 2;
+  } else {
+    // Au-delà de 4 joueurs, on garde 2 colonnes et on ajoute des lignes
+    cols = 2;
+    rows = Math.ceil(playerCount / 2);
+  }
+  
+  gameContainer.className = 'game-container';
+  gameContainer.style.setProperty('--grid-cols', cols);
+  gameContainer.style.setProperty('--grid-rows', rows);
+  
+  // Ajouter la classe pour le scroll si plus de 4 joueurs
+  gameContainer.classList.remove('has-scroll');
+  if (playerCount > 4) {
+    gameContainer.classList.add('has-scroll');
+  }
 
   players.forEach((player) => {
     const playerCard = createPlayerCard(player);
