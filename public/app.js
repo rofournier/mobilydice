@@ -54,45 +54,56 @@ socket.on('dice:rolled', (data) => {
 function renderPlayers() {
   gameContainer.innerHTML = '';
   
-  // Calculer le layout de la grille pour desktop
-  const playerCount = players.length;
-  let cols, rows;
+  // Séparer le joueur actuel des autres joueurs
+  const currentPlayer = players.find(p => p.id === playerId);
+  const otherPlayers = players.filter(p => p.id !== playerId);
   
-  if (playerCount === 1) {
-    cols = 1;
-    rows = 1;
-  } else if (playerCount === 2) {
-    cols = 2;
-    rows = 1;
-  } else if (playerCount <= 4) {
-    cols = 2;
-    rows = 2;
-  } else {
-    // Au-delà de 4 joueurs, on garde 2 colonnes et on ajoute des lignes
-    cols = 2;
-    rows = Math.ceil(playerCount / 2);
+  // Créer le container pour le tapis du joueur actuel
+  const playerMatContainer = document.createElement('div');
+  playerMatContainer.className = 'player-mat-container';
+  
+  if (currentPlayer) {
+    const playerMat = createPlayerCard(currentPlayer, true);
+    playerMatContainer.appendChild(playerMat);
   }
   
-  gameContainer.className = 'game-container';
-  gameContainer.style.setProperty('--grid-cols', cols);
-  gameContainer.style.setProperty('--grid-rows', rows);
+  // Créer le container pour les autres joueurs
+  const otherPlayersContainer = document.createElement('div');
+  otherPlayersContainer.className = 'other-players-container';
   
-  // Ajouter la classe pour le scroll si plus de 4 joueurs
+  // Calculer la grille pour les autres joueurs
+  const otherPlayersCount = otherPlayers.length;
+  if (otherPlayersCount > 0) {
+    // Calculer le nombre de colonnes optimal (max 4 colonnes)
+    const cols = Math.min(4, Math.ceil(Math.sqrt(otherPlayersCount)));
+    otherPlayersContainer.style.setProperty('--grid-cols', cols);
+    
+    otherPlayers.forEach((player) => {
+      const playerCard = createPlayerCard(player, false);
+      otherPlayersContainer.appendChild(playerCard);
+    });
+  } else {
+    // Si seul, agrandir le tapis
+    playerMatContainer.classList.add('solo');
+  }
+  
+  // Ajouter les containers au game container
+  gameContainer.appendChild(playerMatContainer);
+  if (otherPlayersCount > 0) {
+    gameContainer.appendChild(otherPlayersContainer);
+  }
+  
+  // Ajouter la classe pour le scroll si beaucoup de joueurs
   gameContainer.classList.remove('has-scroll');
-  if (playerCount > 4) {
+  if (otherPlayersCount > 8) {
     gameContainer.classList.add('has-scroll');
   }
-
-  players.forEach((player) => {
-    const playerCard = createPlayerCard(player);
-    gameContainer.appendChild(playerCard);
-  });
 }
 
 // Créer une carte joueur
-function createPlayerCard(player) {
+function createPlayerCard(player, isMainPlayer = false) {
   const card = document.createElement('div');
-  card.className = 'player-card';
+  card.className = isMainPlayer ? 'player-card main-player-mat' : 'player-card other-player-card';
   card.setAttribute('data-player-id', player.id);
 
   const nameDiv = document.createElement('div');

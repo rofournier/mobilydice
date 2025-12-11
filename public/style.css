@@ -140,46 +140,67 @@ body::before {
 .game-container {
   width: 100vw;
   height: 100vh;
-  display: grid;
-  gap: clamp(5px, 1vh, 10px);
-  padding: clamp(5px, 1vh, 10px);
-  grid-template-columns: repeat(var(--grid-cols, 1), 1fr);
-  grid-template-rows: repeat(var(--grid-rows, 1), 1fr);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
+}
+
+.game-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.game-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.game-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 208, 132, 0.5);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.game-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 208, 132, 0.7);
 }
 
 .game-container.hidden {
   display: none;
 }
 
-/* Avec scroll pour plus de 4 joueurs */
-.game-container.has-scroll {
-  grid-template-rows: repeat(2, minmax(300px, auto));
-  grid-auto-rows: minmax(300px, auto);
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+/* Container du tapis du joueur principal */
+.player-mat-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 50vh;
+  min-height: 500px;
+  flex-shrink: 0;
+}
+
+.player-mat-container.solo {
   height: 100vh;
-  max-height: 100vh;
+  min-height: 600px;
 }
 
-.game-container.has-scroll::-webkit-scrollbar {
-  width: 12px;
+.player-mat-container.solo .player-card.main-player-mat {
+  max-height: 600px;
 }
 
-.game-container.has-scroll::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-
-.game-container.has-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 208, 132, 0.5);
-  border-radius: 10px;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-}
-
-.game-container.has-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 208, 132, 0.7);
+/* Container des autres joueurs */
+.other-players-container {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 1), 1fr);
+  gap: 15px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
 }
 
 
@@ -201,9 +222,67 @@ body::before {
   position: relative;
   overflow: hidden;
   border: 2px solid rgba(0, 208, 132, 0.3);
-  min-height: 300px;
-  min-width: 0;
-  height: auto;
+}
+
+/* Tapis du joueur principal - taille fixe */
+.player-card.main-player-mat {
+  width: 600px;
+  max-width: 90vw;
+  height: 100%;
+  min-height: 450px;
+  max-height: 500px;
+}
+
+/* Cartes des autres joueurs - plus petites */
+.player-card.other-player-card {
+  width: 100%;
+  height: 250px;
+  min-height: 250px;
+  padding: 12px;
+}
+
+/* Ajustements pour les cartes des autres joueurs */
+.other-player-card .player-name {
+  font-size: clamp(0.8rem, 1.5vh, 1.2rem);
+  padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 15px);
+  margin-bottom: clamp(3px, 0.8vh, 10px);
+  letter-spacing: clamp(1px, 0.2vw, 2px);
+}
+
+.other-player-card .player-dice-type {
+  font-size: clamp(0.6rem, 1.2vh, 0.9rem);
+  margin-left: clamp(3px, 0.8vw, 8px);
+}
+
+.other-player-card .dice {
+  width: clamp(80px, min(12vw, 12vh), 120px);
+  height: clamp(80px, min(12vw, 12vh), 120px);
+}
+
+.other-player-card .dice-number {
+  font-size: clamp(1.2rem, min(4vw, 4vh), 2rem);
+  border-width: clamp(2px, 0.4vw, 3px);
+}
+
+.other-player-card .result-display {
+  font-size: clamp(0.9rem, min(3vw, 3vh), 1.5rem);
+  margin-top: clamp(3px, 0.8vh, 10px);
+  min-height: clamp(20px, 3vh, 40px);
+}
+
+.other-player-card .roll-button {
+  margin-top: clamp(5px, 1vh, 15px);
+  padding: clamp(6px, 1.2vh, 10px) clamp(15px, 3vw, 25px);
+  font-size: clamp(0.6rem, min(1.5vw, 1.5vh), 0.9rem);
+}
+
+.other-player-card .dice-selector-container,
+.other-player-card .dice-type-display {
+  margin-bottom: clamp(3px, 0.6vh, 8px);
+}
+
+.other-player-card .dice-container {
+  flex: 0 0 auto;
 }
 
 .player-card::before {
@@ -933,18 +1012,35 @@ body::before {
 
 /* Responsive */
 @media (max-width: 768px) {
-  /* Layout des joueurs - simple colonne sur mobile */
+  /* Layout sur mobile */
   .game-container {
-    grid-template-columns: 1fr !important;
-    grid-template-rows: repeat(auto-fit, minmax(200px, 1fr)) !important;
-    gap: 8px;
-    padding: 8px;
+    gap: 15px;
+    padding: 15px;
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
   }
   
-  .player-card {
+  .player-mat-container {
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .player-card.main-player-mat {
+    width: 100%;
+    max-width: 100%;
+    min-height: 400px;
+    max-height: none;
+  }
+  
+  .other-players-container {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    padding: 5px;
+  }
+  
+  .player-card.other-player-card {
+    height: 200px;
     min-height: 200px;
   }
 
