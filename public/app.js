@@ -3,6 +3,13 @@ let playerId = null;
 let players = [];
 let isRolling = false;
 
+// État du mode Sync
+let isSyncMode = false;
+let isLeader = false;
+let currentTurn = 1;
+let turnDiceType = 20;
+let playersWhoRolledThisTurn = [];
+
 // Éléments DOM
 const nameModal = document.getElementById('nameModal');
 const playerNameInput = document.getElementById('playerNameInput');
@@ -40,6 +47,71 @@ socket.on('players:update', (playersList) => {
       playerName = currentPlayer.name;
     }
   }
+  
+  // Mettre à jour l'UI Sync après le rendu
+  if (isSyncMode) {
+    updateSyncUI();
+  }
+});
+
+// Écouter les mises à jour de l'état Sync
+socket.on('sync:state', (state) => {
+  isSyncMode = state.isSyncMode;
+  isLeader = state.leaderId === playerId;
+  currentTurn = state.currentTurn;
+  turnDiceType = state.turnDiceType;
+  playersWhoRolledThisTurn = state.playersWhoRolledThisTurn || [];
+
+  // Afficher/masquer les contrôles selon si on est le chef
+  const syncControl = document.getElementById('syncControl');
+  const turnDiceSelector = document.getElementById('turnDiceSelector');
+  
+  if (isLeader) {
+    syncControl.classList.remove('hidden');
+    syncControl.querySelector('#syncToggle').checked = isSyncMode;
+    
+    if (isSyncMode) {
+      turnDiceSelector.classList.remove('hidden');
+      turnDiceSelector.querySelector('#turnDiceSelect').value = turnDiceType;
+    } else {
+      turnDiceSelector.classList.add('hidden');
+    }
+  } else {
+    syncControl.classList.add('hidden');
+    turnDiceSelector.classList.add('hidden');
+  }
+
+  // Mettre à jour l'UI pour indiquer le mode Sync
+  updateSyncUI();
+  
+  // Si on sort du mode Sync, réinitialiser les boutons et réafficher le sélecteur
+  if (!isSyncMode) {
+    players.forEach(player => {
+      const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
+      if (playerCard) {
+        const rollButton = playerCard.querySelector('.roll-button');
+        if (rollButton && player.id === playerId) {
+          rollButton.textContent = '⚔️ Lancer le dé';
+          rollButton.style.opacity = '1';
+          rollButton.disabled = isRolling;
+        }
+      }
+    });
+    
+    // Réafficher le sélecteur de dé personnel
+    const currentPlayerCard = document.querySelector(`[data-player-id="${playerId}"]`);
+    if (currentPlayerCard) {
+      const diceSelectorContainer = currentPlayerCard.querySelector('.dice-selector-container');
+      if (diceSelectorContainer) {
+        diceSelectorContainer.style.display = 'flex';
+      }
+    }
+  }
+});
+
+// Écouter la fin de tour
+socket.on('sync:turnComplete', (data) => {
+  showTurnComplete(data.turn, data.results);
 });
 
 // Écouter les lancers de dé
@@ -199,6 +271,10 @@ function createPlayerCard(player, isMainPlayer = false) {
   if (player.id === playerId) {
     rollButton.addEventListener('click', () => {
       if (!isRolling) {
+        // En mode Sync, vérifier qu'on n'a pas déjà lancé ce tour
+        if (isSyncMode && playersWhoRolledThisTurn.includes(playerId)) {
+          return;
+        }
         socket.emit('dice:roll');
       }
     });
@@ -294,8 +370,12 @@ function rollDice(playerCard, result, diceType, isMyRoll) {
         setTimeout(() => {
           if (isMyRoll) {
             isRolling = false;
-            if (rollButton) rollButton.disabled = false;
-            socket.emit('dice:animation:complete');
+            if (rollButton) {
+              // En mode Sync, désactiver le bouton si on a déjà lancé ce tour
+              const hasRolled = playersWhoRolledThisTurn.includes(playerId);
+              rollButton.disabled = hasRolled || isRolling;
+            }
+            socket.emit('dice:animation:complete', { result: result });
           }
           dice.style.transition = '';
           diceNumber.classList.remove('result');
@@ -599,6 +679,123 @@ const savedMusicState = localStorage.getItem('musicEnabled');
 musicToggle.checked = savedMusicState === 'true';
 
 // Gérer le toggle de la musique
+// ==================== GESTION DU MODE SYNC ====================
+
+// Éléments du mode Sync
+const syncToggle = document.getElementById('syncToggle');
+const turnDiceSelect = document.getElementById('turnDiceSelect');
+
+// Toggle du mode Sync
+syncToggle.addEventListener('change', () => {
+  socket.emit('sync:toggle');
+});
+
+// Changer le type de dé du tour
+turnDiceSelect.addEventListener('change', (e) => {
+  const diceType = parseInt(e.target.value);
+  socket.emit('sync:changeTurnDiceType', diceType);
+});
+
+// Mettre à jour l'UI selon le mode Sync
+function updateSyncUI() {
+  // Mettre à jour les boutons de lancer selon le mode Sync
+  players.forEach(player => {
+    const playerCard = document.querySelector(`[data-player-id="${player.id}"]`);
+    if (playerCard) {
+      const rollButton = playerCard.querySelector('.roll-button');
+      if (rollButton && player.id === playerId) {
+        if (isSyncMode) {
+          // En mode Sync, désactiver si on a déjà lancé ce tour
+          const hasRolled = playersWhoRolledThisTurn.includes(playerId);
+          rollButton.disabled = hasRolled || isRolling;
+          
+          // Mettre à jour le texte du bouton
+          if (hasRolled) {
+            rollButton.textContent = '✓ Lancé ce tour';
+            rollButton.style.opacity = '0.6';
+          } else {
+            rollButton.textContent = `⚔️ Lancer le dé (d${turnDiceType})`;
+            rollButton.style.opacity = '1';
+          }
+        } else {
+          // Mode normal
+          rollButton.textContent = '⚔️ Lancer le dé';
+          rollButton.style.opacity = '1';
+          rollButton.disabled = isRolling;
+        }
+      }
+      
+      // Mettre à jour l'affichage du type de dé pour les autres joueurs en mode Sync
+      if (isSyncMode && player.id !== playerId) {
+        const diceTypeDisplay = playerCard.querySelector('.dice-type-display');
+        if (diceTypeDisplay) {
+          diceTypeDisplay.textContent = `🎲 d${turnDiceType}`;
+        }
+      }
+    }
+  });
+
+  // Cacher/afficher le sélecteur de dé personnel selon le mode Sync
+  const currentPlayerCard = document.querySelector(`[data-player-id="${playerId}"]`);
+  if (currentPlayerCard) {
+    const diceSelectorContainer = currentPlayerCard.querySelector('.dice-selector-container');
+    if (diceSelectorContainer) {
+      // En mode Sync, cacher le sélecteur pour tout le monde (même le chef)
+      // En mode libre, toujours afficher le sélecteur
+      if (isSyncMode) {
+        diceSelectorContainer.style.display = 'none';
+      } else {
+        diceSelectorContainer.style.display = 'flex';
+      }
+    }
+  }
+}
+
+// Afficher le message de fin de tour
+function showTurnComplete(turn, results) {
+  const modal = document.getElementById('turnCompleteModal');
+  const turnNumber = document.getElementById('turnNumber');
+  const turnResults = document.getElementById('turnResults');
+  const turnCompleteMessage = document.getElementById('turnCompleteMessage');
+  
+  turnNumber.textContent = turn;
+  
+  // Trier les résultats par valeur décroissante
+  const sortedResults = [...results].sort((a, b) => b.result - a.result);
+  
+  // Afficher les résultats
+  turnResults.innerHTML = '';
+  sortedResults.forEach((result, index) => {
+    const resultDiv = document.createElement('div');
+    resultDiv.className = 'turn-result-item';
+    resultDiv.innerHTML = `
+      <span class="turn-result-rank">${index === 0 ? '👑' : index + 1}</span>
+      <span class="turn-result-name">${result.name}</span>
+      <span class="turn-result-value">${result.result}</span>
+    `;
+    turnResults.appendChild(resultDiv);
+  });
+  
+  // Générer un message personnalisé
+  const winner = sortedResults[0];
+  const messages = [
+    `${winner.name} domine avec un ${winner.result} ! 🎯`,
+    `${winner.name} prend la tête avec ${winner.result} ! ⚔️`,
+    `${winner.name} mène la danse avec ${winner.result} ! 🎲`,
+    `Impressionnant ${winner.result} pour ${winner.name} ! 🔥`
+  ];
+  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+  turnCompleteMessage.textContent = randomMessage;
+  
+  // Afficher la modal avec animation
+  modal.classList.remove('hidden');
+  
+  // Fermer automatiquement après 5 secondes
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 5000);
+}
+
 musicToggle.addEventListener('change', () => {
   if (musicToggle.checked) {
     backgroundMusic.play().catch(e => {
