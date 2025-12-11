@@ -36,13 +36,19 @@ playerNameInput.addEventListener('keypress', (e) => {
 socket.on('players:update', (playersList) => {
   players = playersList;
   playerId = socket.id;
+  
+  // Réinitialiser l'état de lancer si nécessaire (au cas où un joueur se déconnecte pendant l'animation)
+  const currentPlayer = playersList.find(p => p.id === socket.id);
+  if (currentPlayer && !currentPlayer.isRolling) {
+    isRolling = false;
+  }
+  
   renderPlayers();
   
   // Afficher le bouton chat et contrôle musique une fois connecté
   if (playerId) {
     document.getElementById('chatToggleBtn').classList.remove('hidden');
     document.getElementById('musicControl').classList.remove('hidden');
-    const currentPlayer = playersList.find(p => p.id === socket.id);
     if (currentPlayer) {
       playerName = currentPlayer.name;
     }
@@ -51,6 +57,15 @@ socket.on('players:update', (playersList) => {
   // Mettre à jour l'UI Sync après le rendu
   if (isSyncMode) {
     updateSyncUI();
+  } else {
+    // En mode libre, s'assurer que le bouton est activé si on n'est pas en train de lancer
+    const currentPlayerCard = document.querySelector(`[data-player-id="${playerId}"]`);
+    if (currentPlayerCard && !isRolling) {
+      const rollButton = currentPlayerCard.querySelector('.roll-button');
+      if (rollButton) {
+        rollButton.disabled = false;
+      }
+    }
   }
 });
 
@@ -269,6 +284,14 @@ function createPlayerCard(player, isMainPlayer = false) {
   rollButton.id = `roll-btn-${player.id}`;
   
   if (player.id === playerId) {
+    // S'assurer que le bouton est dans le bon état initial
+    if (isSyncMode) {
+      const hasRolled = playersWhoRolledThisTurn.includes(playerId);
+      rollButton.disabled = hasRolled || isRolling;
+    } else {
+      rollButton.disabled = isRolling;
+    }
+    
     rollButton.addEventListener('click', () => {
       if (!isRolling) {
         // En mode Sync, vérifier qu'on n'a pas déjà lancé ce tour
