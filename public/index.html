@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D20 Roller - Multiplayer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Modal pour entrer le nom -->
+  <div id="nameModal" class="modal">
+    <div class="modal-content">
+      <h2>Entrez votre nom</h2>
+      <input type="text" id="playerNameInput" placeholder="Votre nom" maxlength="20" autofocus>
+      <button id="joinButton">Rejoindre</button>
+    </div>
+  </div>
+
+  <!-- Container principal pour les joueurs -->
+  <div id="gameContainer" class="game-container hidden">
+    <!-- Les joueurs seront ajoutés dynamiquement ici -->
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
