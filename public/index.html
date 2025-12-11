@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D20 Roller - Multiplayer</title>
+  <title>🎲 Table de Jeu - Dés Multijoueur</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Righteous&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Righteous&family=Cinzel:wght@400;600;700&family=MedievalSharp&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,6 +22,44 @@
   <!-- Container principal pour les joueurs -->
   <div id="gameContainer" class="game-container hidden">
     <!-- Les joueurs seront ajoutés dynamiquement ici -->
+  </div>
+
+  <!-- Modale de chat -->
+  <div id="chatModal" class="chat-modal hidden">
+    <div class="chat-header" id="chatHeader">
+      <div class="chat-title">
+        <span>💬 Chat</span>
+        <span class="chat-badge" id="chatBadge">0</span>
+      </div>
+      <div class="chat-controls">
+        <button class="chat-btn-close" id="chatClose" title="Fermer">×</button>
+      </div>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-container">
+        <input type="text" id="chatInput" placeholder="Tapez votre message..." maxlength="200">
+        <button id="chatSendBtn">Envoyer</button>
+      </div>
+    </div>
+    <div class="chat-resize-handle" id="chatResizeHandle"></div>
+  </div>
+
+  <!-- Bouton pour ouvrir le chat -->
+  <button id="chatToggleBtn" class="chat-toggle-btn hidden" title="Ouvrir le chat">
+    <span>💬</span>
+    <span class="chat-toggle-badge" id="chatToggleBadge">0</span>
+  </button>
+
+  <!-- Contrôle musique -->
+  <div class="music-control hidden" id="musicControl">
+    <label class="music-toggle-label">
+      <input type="checkbox" id="musicToggle">
+      <span class="music-toggle-text">🎵 Musique</span>
+    </label>
+    <audio id="backgroundMusic" loop>
+      <source src="/music.mp3" type="audio/mpeg">
+    </audio>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>

@@ -26,7 +26,8 @@ io.on('connection', (socket) => {
     players.set(socket.id, {
       id: socket.id,
       name: playerName,
-      isRolling: false
+      isRolling: false,
+      diceType: 20 // Par défaut d20
     });
 
     // Envoyer la liste des joueurs à tous
@@ -36,6 +37,17 @@ io.on('connection', (socket) => {
     console.log(`Joueur ${playerName} (${socket.id}) a rejoint. Total: ${players.size}`);
   });
 
+  // Quand un joueur change son type de dé
+  socket.on('dice:changeType', (diceType) => {
+    const player = players.get(socket.id);
+    if (player && [4, 6, 8, 10, 12, 20].includes(diceType)) {
+      player.diceType = diceType;
+      players.set(socket.id, player);
+      const playersList = Array.from(players.values());
+      io.emit('players:update', playersList);
+    }
+  });
+
   // Quand un joueur lance le dé
   socket.on('dice:roll', () => {
     const player = players.get(socket.id);
@@ -43,8 +55,9 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Générer un résultat aléatoire entre 1 et 20
-    const result = Math.floor(Math.random() * 20) + 1;
+    // Générer un résultat aléatoire selon le type de dé
+    const diceType = player.diceType || 20;
+    const result = Math.floor(Math.random() * diceType) + 1;
 
     // Marquer le joueur comme en train de lancer
     player.isRolling = true;
@@ -54,10 +67,11 @@ io.on('connection', (socket) => {
     io.emit('dice:rolled', {
       playerId: socket.id,
       playerName: player.name,
-      result: result
+      result: result,
+      diceType: diceType
     });
 
-    console.log(`${player.name} a lancé un ${result}`);
+    console.log(`${player.name} a lancé un d${diceType} et obtenu ${result}`);
   });
 
   // Quand l'animation est terminée
@@ -67,6 +81,26 @@ io.on('connection', (socket) => {
       player.isRolling = false;
       players.set(socket.id, player);
     }
+  });
+
+  // Gestion des messages de chat
+  socket.on('chat:message', (message) => {
+    const player = players.get(socket.id);
+    if (!player || !message.trim()) {
+      return;
+    }
+
+    const messageData = {
+      id: Date.now().toString(),
+      playerId: socket.id,
+      playerName: player.name,
+      message: message.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    // Diffuser le message à tous les clients
+    io.emit('chat:message', messageData);
+    console.log(`[Chat] ${player.name}: ${message}`);
   });
 
   // Quand un joueur se déconnecte
