@@ -6,19 +6,50 @@
 @media (max-width: 1024px) {
   .game-container {
     padding: var(--spacing-lg);
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
   }
 
   .top-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: var(--spacing-lg);
+    flex: none !important;
+    min-height: auto !important;
+  }
+
+  .dice-column {
+    min-height: 400px;
+    max-height: 400px;
+    width: 100%;
   }
 
   .dice-container {
     max-width: 500px;
+    min-height: 400px;
+    max-height: 400px;
+    width: 100%;
   }
 
   .options-column {
     order: -1;
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100%;
+  }
+
+  .options-column .header-card {
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .players-section {
+    flex: none !important;
+    min-height: auto !important;
+    width: 100%;
   }
 
   .options-grid {
@@ -41,15 +72,55 @@
   .game-container {
     padding: var(--spacing-md);
     gap: var(--spacing-md);
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    flex-direction: column;
   }
 
   .top-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: var(--spacing-md);
+    flex: none !important;
+    min-height: auto !important;
+    width: 100%;
+    order: 1;
+  }
+
+  .dice-column {
+    min-height: 300px;
+    max-height: 300px;
+    width: 100%;
+    order: 2;
   }
 
   .dice-container {
     max-width: 100%;
+    min-height: 300px;
+    max-height: 300px;
+    width: 100%;
+  }
+
+  .options-column {
+    order: 1 !important;
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100%;
+  }
+
+  .options-column .header-card {
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .players-section {
+    flex: none !important;
+    min-height: auto !important;
+    width: 100%;
+    order: 2;
   }
 
   .header-card,
@@ -84,8 +155,45 @@
 
 /* Small Mobile */
 @media (max-width: 480px) {
+  .game-container {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+
+  .top-section {
+    gap: var(--spacing-sm);
+    flex: none !important;
+    min-height: auto !important;
+  }
+
+  .dice-column {
+    min-height: 250px;
+    max-height: 250px;
+    width: 100%;
+  }
+
   .dice-container {
     max-width: 100%;
+    min-height: 250px;
+    max-height: 250px;
+    width: 100%;
+  }
+
+  .options-column {
+    min-height: auto !important;
+    max-height: none !important;
+  }
+
+  .options-column .header-card {
+    min-height: auto !important;
+    max-height: none !important;
+  }
+
+  .players-section {
+    flex: none !important;
+    min-height: auto !important;
   }
 
   .header-card-title,
