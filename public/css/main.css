@@ -61,9 +61,10 @@
    ============================================ */
 
 .casino-felt {
-  /* Texture de feutre de casino élégante */
+  /* Les couleurs seront définies dynamiquement par configManager */
+  /* Base par défaut (vert) - sera remplacée par le style dynamique */
   background: 
-    /* Base vert casino profond avec variation subtile */
+    /* Base opaque vert foncé */
     linear-gradient(135deg, 
       #0a3d1a 0%, 
       #0f4d1f 20%, 
@@ -72,34 +73,30 @@
       #0a3d1a 80%, 
       #0f4d1f 100%
     ),
-    /* Texture de feutre - lignes verticales subtiles */
     repeating-linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.08) 0px,
-      rgba(0, 0, 0, 0.08) 0.5px,
+      rgba(0, 0, 0, 0.03) 0px,
+      rgba(0, 0, 0, 0.03) 0.5px,
       transparent 0.5px,
       transparent 1px
     ),
-    /* Texture de feutre - lignes horizontales subtiles */
     repeating-linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.06) 0px,
-      rgba(0, 0, 0, 0.06) 0.5px,
+      rgba(0, 0, 0, 0.02) 0px,
+      rgba(0, 0, 0, 0.02) 0.5px,
       transparent 0.5px,
       transparent 1px
     ),
-    /* Texture granuleuse fine (simule le feutre) */
     radial-gradient(
-      circle at 1px 1px,
-      rgba(255, 255, 255, 0.03) 0.5px,
-      transparent 0.5px
+      circle at 0.5px 0.5px,
+      rgba(139, 195, 74, 0.02) 0.3px,
+      transparent 0.3px
     ),
     radial-gradient(
-      circle at 3px 3px,
-      rgba(0, 0, 0, 0.04) 0.5px,
-      transparent 0.5px
+      circle at 1.5px 1.5px,
+      rgba(0, 0, 0, 0.02) 0.3px,
+      transparent 0.3px
     ),
-    /* Légère variation de profondeur */
     radial-gradient(
       ellipse 80% 50% at 30% 20%,
       rgba(139, 195, 74, 0.08) 0%,
@@ -127,7 +124,6 @@
     0 0,
     0 0;
   border: 2px solid rgba(139, 195, 74, 0.25);
-  /* Ombres élégantes pour la profondeur */
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.4),
     0 2px 8px rgba(0, 0, 0, 0.3),
@@ -145,7 +141,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  /* Éclairage subtil statique */
+  /* Éclairage subtil statique - sera remplacé par le style dynamique */
   background: 
     radial-gradient(
       ellipse 60% 40% at 20% 30%,
@@ -157,7 +153,6 @@
       rgba(139, 195, 74, 0.08) 0%,
       transparent 60%
     ),
-    /* Reflet de lumière doux */
     linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.03) 0%,
@@ -177,7 +172,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  /* Bordure intérieure subtile pour la profondeur */
+  /* Bordure intérieure subtile - sera remplacée par le style dynamique */
   border-radius: inherit;
   box-shadow: 
     inset 0 2px 4px rgba(0, 0, 0, 0.3),
