@@ -56,6 +56,14 @@ export class SocketManager {
       this.emit('socket:error', error);
     });
 
+    this.socket.on('game:state', (state) => {
+      this.emit('game:state', state);
+    });
+
+    this.socket.on('round:complete', (results) => {
+      this.emit('round:complete', results);
+    });
+
     return true;
   }
 
@@ -92,6 +100,30 @@ export class SocketManager {
     }
 
     this.socket.emit('dice:type:changed', diceType);
+  }
+
+  sendDiceQuantityChanged(quantity) {
+    if (!this.isConnected || !this.socket) {
+      return;
+    }
+
+    this.socket.emit('dice:quantity:changed', quantity);
+  }
+
+  toggleSyncMode() {
+    if (!this.isConnected || !this.socket) {
+      return;
+    }
+
+    this.socket.emit('game:sync:toggle');
+  }
+
+  nextTurn() {
+    if (!this.isConnected || !this.socket) {
+      return;
+    }
+
+    this.socket.emit('game:turn:next');
   }
 
   // Système d'événements locaux (pub/sub)

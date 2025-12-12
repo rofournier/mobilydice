@@ -17,6 +17,9 @@ class DiceRollerApp {
     this.uiManager = null;
     this.socketManager = null;
     this.isInitialized = false;
+    
+    // Exposer l'instance globalement pour UIManager
+    window.app = this;
   }
 
   async init() {
@@ -96,13 +99,29 @@ class DiceRollerApp {
     });
 
     window.addEventListener('dice:quantity:changed', (e) => {
-      // Peut être utilisé pour prévisualiser ou autres
-      console.log('Dice quantity changed:', e.detail.quantity);
+      const { quantity } = e.detail;
+      // Envoyer au serveur
+      this.socketManager.sendDiceQuantityChanged(quantity);
+    });
+
+    // Événements du mode sync
+    window.addEventListener('game:sync:toggle', () => {
+      this.socketManager.toggleSyncMode();
+    });
+
+    window.addEventListener('game:turn:next', () => {
+      this.socketManager.nextTurn();
     });
   }
 
   async handleRollRequest() {
     if (!this.isInitialized || this.diceManager.isRolling) {
+      return;
+    }
+
+    // En mode sync, vérifier qu'on n'a pas déjà lancé ce tour
+    if (this.uiManager.syncMode && this.uiManager.hasRolledThisTurn) {
+      console.warn('Déjà lancé ce tour');
       return;
     }
 
@@ -167,8 +186,12 @@ class DiceRollerApp {
       quantity: quantity
     });
 
-    // Réactiver le bouton
-    this.uiManager.setRollButtonEnabled(true);
+    // En mode sync, marquer qu'on a lancé ce tour
+    if (this.uiManager.syncMode) {
+      this.uiManager.setHasRolledThisTurn(true);
+    } else {
+      this.uiManager.setRollButtonEnabled(true);
+    }
 
     console.log('Roll complete:', { total, diceType, quantity, results });
   }
@@ -198,9 +221,82 @@ class DiceRollerApp {
       this.playerManager.updatePlayerRoll(data.playerId, true);
     });
 
-    // Écouter les erreurs
+    // Écouter les erreurs du serveur (pour afficher des messages)
     this.socketManager.on('socket:error', (error) => {
-      console.error('[Socket] Erreur:', error);
+      if (error && error.message) {
+        // Afficher l'erreur de manière visible
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'server-error-message';
+        errorDiv.textContent = error.message;
+        errorDiv.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: rgba(239, 68, 68, 0.9);
+          color: white;
+          padding: var(--spacing-md) var(--spacing-lg);
+          border-radius: var(--radius-md);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          z-index: 10000;
+          animation: slideInRight 0.3s ease-out;
+        `;
+        document.body.appendChild(errorDiv);
+        
+        setTimeout(() => {
+          errorDiv.remove();
+        }, 3000);
+      }
+    });
+
+    // Les erreurs sont gérées dans setupSocketListeners
+
+    // Écouter l'état du jeu (GM, mode sync)
+    this.socketManager.on('game:state', (state) => {
+      // Attendre un peu pour que players:update soit traité d'abord
+      setTimeout(() => {
+        const socketId = this.socketManager.getSocketId();
+        const player = socketId ? this.playerManager.getPlayer(socketId) : null;
+        const isGM = player?.isGM || false;
+        
+        this.uiManager.setGameMaster(isGM);
+        this.uiManager.setSyncMode(
+          state.syncMode, 
+          state.syncDiceType, 
+          state.syncDiceQuantity
+        );
+        
+        // Vérifier si le joueur a déjà lancé ce tour
+        if (state.syncMode) {
+          if (player && player.lastResult) {
+            this.uiManager.setHasRolledThisTurn(true);
+          } else {
+            this.uiManager.setHasRolledThisTurn(false);
+          }
+        } else {
+          this.uiManager.setHasRolledThisTurn(false);
+        }
+      }, 100);
+    });
+
+    // Écouter la fin d'un tour
+    this.socketManager.on('round:complete', (results) => {
+      const socketId = this.socketManager.getSocketId();
+      const isWinner = results.winners.includes(socketId);
+      const isLoser = results.losers.includes(socketId);
+      
+      // Déclencher les animations de victoire/défaite
+      if (isWinner) {
+        this.playerManager.showVictoryAnimation(socketId);
+      }
+      if (isLoser) {
+        this.playerManager.showDefeatAnimation(socketId);
+      }
+      
+      // Afficher la modale de résultats avec les scores
+      this.uiManager.showRoundComplete(results.winners, results.losers, results.scores);
+      
+      // Réinitialiser l'état de roll pour le prochain tour
+      this.uiManager.setHasRolledThisTurn(false);
     });
   }
 }

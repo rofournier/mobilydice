@@ -1,10 +1,9 @@
 services:
   - type: web
-    name: whos-d20-roller
+    name: mobilydice
     env: node
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-

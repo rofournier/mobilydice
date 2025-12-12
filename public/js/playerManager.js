@@ -75,7 +75,8 @@ export class PlayerManager {
           existing.isRolling !== player.isRolling ||
           existing.lastResult !== player.lastResult ||
           existing.diceType !== player.diceType ||
-          existing.diceQuantity !== player.diceQuantity;
+          existing.diceQuantity !== player.diceQuantity ||
+          existing.isGM !== player.isGM;
         
         if (hasChanged) {
           this.players.set(player.id, player);
@@ -249,6 +250,22 @@ export class PlayerManager {
       }
     }
 
+    // Afficher le badge GM si c'est le Game Master
+    let gmBadge = card.querySelector('.gm-badge');
+    if (player.isGM) {
+      if (!gmBadge) {
+        gmBadge = document.createElement('div');
+        gmBadge.className = 'gm-badge';
+        gmBadge.textContent = '👑 GM';
+        const header = card.querySelector('.player-card-header');
+        if (header) {
+          header.appendChild(gmBadge);
+        }
+      }
+    } else if (gmBadge) {
+      gmBadge.remove();
+    }
+
     // Mettre à jour les infos de dés
     const diceTypeEl = card.querySelector('.player-dice-type');
     const diceQuantityEl = card.querySelector('.player-dice-quantity');
@@ -396,6 +413,31 @@ export class PlayerManager {
 
   getAllPlayers() {
     return Array.from(this.players.values());
+  }
+
+  showVictoryAnimation(playerId) {
+    const card = this.playersListElement?.querySelector(`[data-player-id="${playerId}"]`);
+    if (card) {
+      card.classList.add('victory-animation');
+      setTimeout(() => {
+        card.classList.remove('victory-animation');
+      }, 2000);
+    }
+  }
+
+  showDefeatAnimation(playerId) {
+    const card = this.playersListElement?.querySelector(`[data-player-id="${playerId}"]`);
+    if (card) {
+      card.classList.add('defeat-animation');
+      setTimeout(() => {
+        card.classList.remove('defeat-animation');
+      }, 2000);
+    }
+  }
+
+  getPlayerName(playerId) {
+    const player = this.players.get(playerId);
+    return player ? player.name : playerId;
   }
 
   startNumberRollAnimation(playerId, diceType, centerSection) {

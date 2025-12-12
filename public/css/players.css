@@ -587,3 +587,212 @@
   color: var(--color-text-muted);
   opacity: 0.8;
 }
+
+/* Badge GM */
+.gm-badge {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a1a;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Animations victoire/défaite */
+.player-card.victory-animation {
+  animation: victoryPulse 2s ease-in-out;
+  border-color: rgba(16, 185, 129, 0.8) !important;
+  box-shadow: 
+    0 0 30px rgba(16, 185, 129, 0.6),
+    0 8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+@keyframes victoryPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  75% {
+    transform: scale(1.05);
+  }
+}
+
+.player-card.defeat-animation {
+  animation: defeatShake 2s ease-in-out;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  opacity: 0.7;
+}
+
+@keyframes defeatShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Bouton Tour Suivant */
+.next-turn-button {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  margin-top: var(--spacing-md);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.next-turn-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, #9d6af7, #7c7ff2);
+}
+
+.next-turn-button:active {
+  transform: translateY(0);
+}
+
+.next-turn-button.hidden {
+  display: none;
+}
+
+/* Modale résultats du tour */
+.round-complete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.round-complete-modal.show {
+  opacity: 1;
+}
+
+.round-complete-content {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 3px solid rgba(255, 215, 0, 0.5);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.4s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.round-complete-content h2 {
+  color: #ffd700;
+  font-size: 2rem;
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+}
+
+.round-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.round-results h3 {
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.round-results ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.round-results li {
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name-modal {
+  font-weight: 600;
+  flex: 1;
+}
+
+.player-score-modal {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  font-family: 'Fredoka One', sans-serif;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.winners li {
+  background: rgba(16, 185, 129, 0.2);
+  border-left: 3px solid #10b981;
+}
+
+.losers li {
+  background: rgba(239, 68, 68, 0.2);
+  border-left: 3px solid #ef4444;
+}
+
+.next-turn-modal-button {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.next-turn-modal-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
