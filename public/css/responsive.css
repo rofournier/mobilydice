@@ -1,0 +1,107 @@
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .game-container {
+    padding: var(--spacing-lg);
+  }
+
+  .top-section {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .dice-container {
+    max-width: 500px;
+  }
+
+  .options-column {
+    order: -1;
+  }
+
+  .options-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .players-list {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player-card {
+    min-width: 180px;
+    width: 180px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .game-container {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .top-section {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .dice-container {
+    max-width: 100%;
+  }
+
+  .header-card,
+  .players-section {
+    padding: var(--spacing-md);
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    padding: var(--spacing-lg);
+    max-width: 90%;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+  }
+
+  .players-list {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .player-card {
+    min-width: 160px;
+    width: 160px;
+    min-height: 160px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .dice-container {
+    max-width: 100%;
+  }
+
+  .header-card-title,
+  .players-section-title {
+    font-size: 1rem;
+  }
+
+  .roll-button {
+    font-size: 1rem;
+    padding: var(--spacing-md) var(--spacing-lg);
+    letter-spacing: 1px;
+  }
+
+  .player-card {
+    min-width: 140px;
+    width: 140px;
+    min-height: 140px;
+  }
+}

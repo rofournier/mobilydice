@@ -12,279 +12,163 @@ const io = new Server(server, {
   }
 });
 
-// Servir les fichiers statiques
-app.use(express.static(path.join(__dirname, 'public')));
+// Middleware pour servir les fichiers JS avec le bon type MIME
+app.use((req, res, next) => {
+  if (req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  } else if (req.path.endsWith('.wasm')) {
+    res.setHeader('Content-Type', 'application/wasm');
+  }
+  next();
+});
+
+// Servir les fichiers statiques depuis le dossier public
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.wasm')) {
+      res.setHeader('Content-Type', 'application/wasm');
+    }
+  }
+}));
+
+// Route pour servir index.html (pour le routing côté client si nécessaire)
+app.get('*', (req, res, next) => {
+  const hasExtension = /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|wasm|json|mp3|wav|ogg)$/i.test(req.path);
+  
+  if (hasExtension) {
+    return res.status(404).send('File not found');
+  }
+  
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ============================================
+// SOCKET.IO - Gestion multijoueur
+// ============================================
 
 // Stocker les joueurs connectés
 const players = new Map();
 
-// État du mode Sync
-let isSyncMode = false;
-let leaderId = null; // ID du chef (première personne connectée)
-let currentTurn = 1;
-let turnDiceType = 20; // Type de dé pour le tour actuel
-let playersWhoRolledThisTurn = new Set(); // Joueurs qui ont lancé ce tour
-
 io.on('connection', (socket) => {
-  console.log('Un utilisateur s\'est connecté:', socket.id);
+  console.log(`[Socket] Nouvelle connexion: ${socket.id}`);
 
-  // Quand un joueur envoie son nom
+  // Quand un joueur rejoint avec son nom
   socket.on('player:join', (playerName) => {
-    // Si c'est le premier joueur, il devient le chef
-    if (players.size === 0) {
-      leaderId = socket.id;
-      console.log(`Le joueur ${playerName} (${socket.id}) est maintenant le chef`);
+    if (!playerName || typeof playerName !== 'string' || playerName.trim().length === 0) {
+      socket.emit('error', { message: 'Nom de joueur invalide' });
+      return;
     }
 
-    players.set(socket.id, {
+    const trimmedName = playerName.trim().substring(0, 20);
+
+    // Créer le joueur
+    const player = {
       id: socket.id,
-      name: playerName,
+      name: trimmedName,
       isRolling: false,
-      diceType: 20, // Par défaut d20
-      hasRolledThisTurn: false // Pour le mode Sync
-    });
+      lastResult: null,
+      diceType: 20,
+      diceQuantity: 1,
+      joinedAt: Date.now()
+    };
 
-    // Envoyer la liste des joueurs et l'état du mode Sync à tous
-    const playersList = Array.from(players.values());
-    io.emit('players:update', playersList);
-    io.emit('sync:state', {
-      isSyncMode,
-      leaderId,
-      currentTurn,
-      turnDiceType,
-      playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-    });
-
-    console.log(`Joueur ${playerName} (${socket.id}) a rejoint. Total: ${players.size}`);
-  });
-
-  // Quand un joueur change son type de dé
-  socket.on('dice:changeType', (diceType) => {
-    const player = players.get(socket.id);
-    if (player && [4, 6, 8, 10, 12, 20].includes(diceType)) {
-      player.diceType = diceType;
-      players.set(socket.id, player);
-      const playersList = Array.from(players.values());
-      io.emit('players:update', playersList);
-    }
-  });
-
-  // Toggle le mode Sync (seulement le chef)
-  socket.on('sync:toggle', () => {
-    if (socket.id !== leaderId) {
-      return; // Seul le chef peut toggle
-    }
-
-    isSyncMode = !isSyncMode;
-    
-    if (isSyncMode) {
-      // Démarrer un nouveau tour
-      currentTurn = 1;
-      turnDiceType = 20;
-      playersWhoRolledThisTurn.clear();
-      // Réinitialiser l'état de tous les joueurs
-      players.forEach((player) => {
-        player.hasRolledThisTurn = false;
-        players.set(player.id, player);
-      });
-    } else {
-      // Sortir du mode Sync : réinitialiser
-      currentTurn = 1;
-      playersWhoRolledThisTurn.clear();
-      players.forEach((player) => {
-        player.hasRolledThisTurn = false;
-        players.set(player.id, player);
-      });
-    }
-
-    io.emit('sync:state', {
-      isSyncMode,
-      leaderId,
-      currentTurn,
-      turnDiceType,
-      playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-    });
-
-    console.log(`Mode Sync ${isSyncMode ? 'activé' : 'désactivé'} par le chef`);
-  });
-
-  // Changer le type de dé pour le tour (seulement le chef en mode Sync)
-  socket.on('sync:changeTurnDiceType', (diceType) => {
-    if (socket.id !== leaderId || !isSyncMode) {
-      return;
-    }
-
-    if ([4, 6, 8, 10, 12, 20].includes(diceType)) {
-      turnDiceType = diceType;
-      io.emit('sync:state', {
-        isSyncMode,
-        leaderId,
-        currentTurn,
-        turnDiceType,
-        playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-      });
-      console.log(`Le chef a changé le type de dé du tour à d${diceType}`);
-    }
-  });
-
-  // Quand un joueur lance le dé
-  socket.on('dice:roll', () => {
-    const player = players.get(socket.id);
-    if (!player || player.isRolling) {
-      return;
-    }
-
-    // En mode Sync, vérifier les restrictions
-    if (isSyncMode) {
-      // Vérifier si le joueur a déjà lancé ce tour
-      if (player.hasRolledThisTurn || playersWhoRolledThisTurn.has(socket.id)) {
-        return;
-      }
-    }
-
-    // Générer un résultat aléatoire selon le type de dé
-    let diceType;
-    if (isSyncMode) {
-      diceType = turnDiceType; // En mode Sync, utiliser le type de dé du tour
-    } else {
-      diceType = player.diceType || 20; // Sinon, utiliser le type de dé personnel
-    }
-    const result = Math.floor(Math.random() * diceType) + 1;
-
-    // Marquer le joueur comme en train de lancer
-    player.isRolling = true;
     players.set(socket.id, player);
 
-    // Stocker le résultat pour le mode Sync
-    if (isSyncMode) {
-      player.lastResult = result;
+    // Envoyer la liste complète des joueurs à tous
+    const playersList = Array.from(players.values());
+    io.emit('players:update', playersList);
+
+    console.log(`[Socket] ${trimmedName} (${socket.id}) a rejoint. Total: ${players.size}`);
+  });
+
+  // Quand un joueur lance les dés (résultat final)
+  socket.on('dice:roll', (rollData) => {
+    const player = players.get(socket.id);
+    if (!player) {
+      socket.emit('error', { message: 'Joueur non trouvé' });
+      return;
     }
 
-    // Diffuser le lancer à tous les clients
-    io.emit('dice:rolled', {
+    // Valider les données
+    const diceType = parseInt(rollData.diceType) || 20;
+    const quantity = parseInt(rollData.quantity) || 1;
+    const result = parseInt(rollData.result);
+
+    if (!result || result <= 0) {
+      socket.emit('error', { message: 'Résultat invalide' });
+      return;
+    }
+
+    // Mettre à jour le joueur (isRolling devient false)
+    player.isRolling = false;
+    player.lastResult = result;
+    player.diceType = diceType;
+    player.diceQuantity = quantity;
+    players.set(socket.id, player);
+
+    // Diffuser le résultat à tous les autres joueurs
+    // (le joueur qui a lancé a déjà son résultat localement)
+    socket.broadcast.emit('dice:rolled', {
       playerId: socket.id,
       playerName: player.name,
       result: result,
-      diceType: diceType
+      diceType: diceType,
+      quantity: quantity
     });
 
-    console.log(`${player.name} a lancé un d${diceType} et obtenu ${result}`);
+    // Mettre à jour la liste des joueurs pour tous (avec le résultat)
+    const playersList = Array.from(players.values());
+    io.emit('players:update', playersList);
 
-    // En mode Sync, marquer que le joueur a lancé ce tour
-    if (isSyncMode) {
-      player.hasRolledThisTurn = true;
-      playersWhoRolledThisTurn.add(socket.id);
-      players.set(socket.id, player);
-
-      // Mettre à jour l'état pour tous les clients
-      io.emit('sync:state', {
-        isSyncMode,
-        leaderId,
-        currentTurn,
-        turnDiceType,
-        playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-      });
-
-      // Vérifier si tout le monde a lancé (après un court délai pour laisser les animations démarrer)
-      setTimeout(() => {
-        const allPlayers = Array.from(players.values());
-        const allHaveRolled = allPlayers.length > 0 && allPlayers.every(p => 
-          p.hasRolledThisTurn || playersWhoRolledThisTurn.has(p.id)
-        );
-
-        if (allHaveRolled) {
-          // Attendre que les animations se terminent, puis émettre la fin de tour
-          setTimeout(() => {
-            io.emit('sync:turnComplete', {
-              turn: currentTurn,
-              results: allPlayers.map(p => ({
-                name: p.name,
-                result: p.lastResult || 0
-              }))
-            });
-
-            // Passer au tour suivant
-            currentTurn++;
-            playersWhoRolledThisTurn.clear();
-            allPlayers.forEach(p => {
-              p.hasRolledThisTurn = false;
-              p.lastResult = null;
-              players.set(p.id, p);
-            });
-
-            io.emit('sync:state', {
-              isSyncMode,
-              leaderId,
-              currentTurn,
-              turnDiceType,
-              playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-            });
-          }, 3000); // Attendre 3 secondes pour les animations
-        }
-      }, 100);
-    }
+    console.log(`[Socket] ${player.name} a lancé ${quantity}d${diceType} = ${result}`);
   });
 
-  // Quand l'animation est terminée
-  socket.on('dice:animation:complete', () => {
+  // Quand un joueur commence à lancer (pour l'animation)
+  socket.on('dice:rolling', () => {
     const player = players.get(socket.id);
-    if (player) {
-      player.isRolling = false;
-      players.set(socket.id, player);
-    }
-  });
+    if (!player) return;
 
-  // Gestion des messages de chat
-  socket.on('chat:message', (message) => {
-    const player = players.get(socket.id);
-    if (!player || !message.trim()) {
-      return;
-    }
+    player.isRolling = true;
+    players.set(socket.id, player);
 
-    const messageData = {
-      id: Date.now().toString(),
+    // Informer les autres joueurs que ce joueur est en train de lancer
+    socket.broadcast.emit('player:rolling', {
       playerId: socket.id,
-      playerName: player.name,
-      message: message.trim(),
-      timestamp: new Date().toISOString()
-    };
+      playerName: player.name
+    });
 
-    // Diffuser le message à tous les clients
-    io.emit('chat:message', messageData);
-    console.log(`[Chat] ${player.name}: ${message}`);
+    // Mettre à jour la liste
+    const playersList = Array.from(players.values());
+    io.emit('players:update', playersList);
+  });
+
+  // Quand un joueur change son type de dé
+  socket.on('dice:type:changed', (diceType) => {
+    const player = players.get(socket.id);
+    if (!player) return;
+
+    const validDiceTypes = [4, 6, 8, 10, 12, 20, 100];
+    if (validDiceTypes.includes(parseInt(diceType))) {
+      player.diceType = parseInt(diceType);
+      players.set(socket.id, player);
+
+      const playersList = Array.from(players.values());
+      io.emit('players:update', playersList);
+    }
   });
 
   // Quand un joueur se déconnecte
   socket.on('disconnect', () => {
     const player = players.get(socket.id);
     if (player) {
-      const wasLeader = socket.id === leaderId;
       players.delete(socket.id);
-      playersWhoRolledThisTurn.delete(socket.id);
-
-      // Si le chef se déconnecte, le suivant devient chef
-      if (wasLeader && players.size > 0) {
-        const newLeader = Array.from(players.values())[0];
-        leaderId = newLeader.id;
-        console.log(`Le joueur ${newLeader.name} (${newLeader.id}) est maintenant le nouveau chef`);
-      } else if (players.size === 0) {
-        // Si plus personne, réinitialiser
-        leaderId = null;
-        isSyncMode = false;
-        currentTurn = 1;
-        playersWhoRolledThisTurn.clear();
-      }
-
+      
       const playersList = Array.from(players.values());
       io.emit('players:update', playersList);
-      io.emit('sync:state', {
-        isSyncMode,
-        leaderId,
-        currentTurn,
-        turnDiceType,
-        playersWhoRolledThisTurn: Array.from(playersWhoRolledThisTurn)
-      });
-      console.log(`Joueur ${player.name} (${socket.id}) s'est déconnecté. Total: ${players.size}`);
+      
+      console.log(`[Socket] ${player.name} (${socket.id}) s'est déconnecté. Total: ${players.size}`);
     }
   });
 });
@@ -293,6 +177,7 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
-  console.log(`Serveur démarré sur http://${HOST}:${PORT}`);
+  console.log(`🚀 Serveur démarré sur http://${HOST}:${PORT}`);
+  console.log(`📁 Fichiers statiques servis depuis: ${path.join(__dirname, 'public')}`);
+  console.log(`🔌 Socket.io prêt pour les connexions`);
 });
-

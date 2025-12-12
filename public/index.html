@@ -6,94 +6,151 @@
   <title>🎲 Table de Jeu - Dés Multijoueur</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Bungee&family=Righteous&family=Cinzel:wght@400;600;700&family=MedievalSharp&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="css/dice.css">
+  <link rel="stylesheet" href="css/players.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-  <!-- Modal pour entrer le nom -->
-  <div id="nameModal" class="modal">
+  <!-- Modal pour entrer le nom du joueur -->
+  <div id="nameModal" class="modal-overlay">
     <div class="modal-content">
-      <h2>Entrez votre nom</h2>
-      <input type="text" id="playerNameInput" placeholder="Votre nom" maxlength="20" autofocus>
-      <button id="joinButton">Rejoindre</button>
+      <h2 class="modal-title">🎲 Bienvenue !</h2>
+      <p class="modal-subtitle">Entrez votre nom pour rejoindre la partie</p>
+      <input 
+        type="text" 
+        id="playerNameInput" 
+        class="modal-input" 
+        placeholder="Votre nom" 
+        maxlength="20" 
+        autofocus
+      >
+      <button id="joinButton" class="modal-button">Rejoindre</button>
     </div>
   </div>
 
-  <!-- Container principal pour les joueurs -->
+  <!-- Container principal -->
   <div id="gameContainer" class="game-container hidden">
-    <!-- Les joueurs seront ajoutés dynamiquement ici -->
-  </div>
-
-  <!-- Modale de chat -->
-  <div id="chatModal" class="chat-modal hidden">
-    <div class="chat-header" id="chatHeader">
-      <div class="chat-title">
-        <span>💬 Chat</span>
-        <span class="chat-badge" id="chatBadge">0</span>
+    <!-- Section supérieure : Dice Container + Options -->
+    <div class="top-section">
+      <!-- Dice Container -->
+      <div class="dice-column">
+        <div id="diceContainer" class="dice-container casino-felt">
+          <!-- Fantastic Dice canvas sera injecté ici -->
+        </div>
       </div>
-      <div class="chat-controls">
-        <button class="chat-btn-close" id="chatClose" title="Fermer">×</button>
+
+      <!-- Options Card -->
+      <div class="options-column">
+        <div class="header-card casino-felt">
+          <h3 class="header-card-title">⚙️ Options</h3>
+          
+          <div class="options-grid">
+            <!-- Type de dé -->
+            <div class="option-group">
+              <label class="option-label" for="diceTypeSelect">Type de dé</label>
+              <select id="diceTypeSelect" class="option-select">
+                <option value="4">d4</option>
+                <option value="6">d6</option>
+                <option value="8">d8</option>
+                <option value="10">d10</option>
+                <option value="12">d12</option>
+                <option value="20" selected>d20</option>
+                <option value="100">d100</option>
+              </select>
+            </div>
+
+            <!-- Nombre de dés -->
+            <div class="option-group">
+              <label class="option-label" for="diceQuantitySelect">Nombre de dés</label>
+              <select id="diceQuantitySelect" class="option-select">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+
+            <!-- Mode Sync -->
+            <div class="option-group">
+              <label class="option-label" for="syncModeToggle">Mode Sync</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="syncModeToggle" disabled>
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="option-hint">Bientôt disponible</span>
+            </div>
+
+            <!-- Sélection musique -->
+            <div class="option-group">
+              <label class="option-label" for="musicSelect">Musique</label>
+              <select id="musicSelect" class="option-select">
+                <option value="none">Silence</option>
+                <option value="music1">Taverne</option>
+                <option value="music2">Ascenceur</option>
+              </select>
+            </div>
+
+            <!-- Sélection background -->
+            <div class="option-group">
+              <label class="option-label" for="backgroundSelect">Background</label>
+              <select id="backgroundSelect" class="option-select">
+                <option value="casino" selected>Casino</option>
+                <option value="bg">Acajou massif</option>
+              </select>
+            </div>
+
+            <!-- Sélection couleur des dés -->
+            <div class="option-group">
+              <label class="option-label" for="diceColorSelect">Couleur des dés</label>
+              <select id="diceColorSelect" class="option-select">
+                <option value="#2e8555">Vert</option>
+                <option value="#6366f1">Bleu</option>
+                <option value="#ec4899">Rose</option>
+                <option value="#f59e0b">Orange</option>
+                <option value="#10b981">Vert clair</option>
+                <option value="#8b5cf6">Violet</option>
+                <option value="#ef4444">Rouge</option>
+                <option value="#fbbf24">Jaune</option>
+                <option value="#06b6d4">Cyan</option>
+                <option value="#ffffff" selected>Blanc</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bouton de lancer -->
+          <button id="rollButton" class="roll-button">
+            <span class="roll-button-text">🎲 Lancer les dés</span>
+          </button>
+        </div>
       </div>
     </div>
-    <div class="chat-body" id="chatBody">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-container">
-        <input type="text" id="chatInput" placeholder="Tapez votre message..." maxlength="200">
-        <button id="chatSendBtn">Envoyer</button>
+
+    <!-- Section inférieure : Joueurs en row -->
+    <div class="players-section casino-felt">
+      <h3 class="players-section-title">👥 Joueurs</h3>
+      <div id="playersList" class="players-list">
+        <!-- Les cards de joueurs seront ajoutées dynamiquement ici -->
       </div>
     </div>
-    <div class="chat-resize-handle" id="chatResizeHandle"></div>
   </div>
 
-  <!-- Bouton pour ouvrir le chat -->
-  <button id="chatToggleBtn" class="chat-toggle-btn hidden" title="Ouvrir le chat">
-    <span>💬</span>
-    <span class="chat-toggle-badge" id="chatToggleBadge">0</span>
-  </button>
+  <!-- Audio pour la musique -->
+  <audio id="backgroundMusic" loop></audio>
 
-  <!-- Contrôle musique -->
-  <div class="music-control hidden" id="musicControl">
-    <label class="music-toggle-label">
-      <input type="checkbox" id="musicToggle">
-      <span class="music-toggle-text">🎵 Musique</span>
-    </label>
-    <audio id="backgroundMusic" loop>
-      <source src="/music.mp3" type="audio/mpeg">
-    </audio>
-  </div>
-
-  <!-- Contrôle mode Sync (visible seulement pour le chef) -->
-  <div class="sync-control hidden" id="syncControl">
-    <label class="sync-toggle-label">
-      <input type="checkbox" id="syncToggle">
-      <span class="sync-toggle-text">⚡ Mode Sync</span>
-    </label>
-  </div>
-
-  <!-- Sélecteur de dé pour le tour (visible seulement pour le chef en mode Sync) -->
-  <div class="turn-dice-selector hidden" id="turnDiceSelector">
-    <label class="turn-dice-label">Type de dé du tour:</label>
-    <select id="turnDiceSelect" class="turn-dice-select">
-      <option value="4">d4</option>
-      <option value="6">d6</option>
-      <option value="8">d8</option>
-      <option value="10">d10</option>
-      <option value="12">d12</option>
-      <option value="20" selected>d20</option>
-    </select>
-  </div>
-
-  <!-- Message de fin de tour -->
-  <div class="turn-complete-modal hidden" id="turnCompleteModal">
-    <div class="turn-complete-content">
-      <h2 class="turn-complete-title">🎯 Tour <span id="turnNumber">1</span> terminé !</h2>
-      <div class="turn-results" id="turnResults"></div>
-      <div class="turn-complete-message" id="turnCompleteMessage"></div>
-    </div>
-  </div>
-
+  <!-- Socket.io -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="app.js"></script>
+
+  <!-- Fantastic Dice Library -->
+  <script type="module">
+    // Exposer DiceBox globalement pour qu'il soit accessible depuis diceManager
+    import DiceBox from '/js/libs/dice-box.es.min.js';
+    window.DiceBox = DiceBox;
+  </script>
+
+  <!-- Scripts -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
-
